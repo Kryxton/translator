@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Telegram Web Übersetzer (Mobil & Desktop)</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      background: #fafafa;
+      text-align: center;
+    }
+    a.bookmarklet {
+      display: inline-block;
+      margin: 1rem 0;
+      padding: 0.8rem 1.2rem;
+      background: #007bff;
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+    }
+    .note {
+      font-size: 0.9rem;
+      color: #555;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Telegram Übersetzer (Mobil & Desktop)</h1>
+
+  <a class="bookmarklet"
+     href="javascript:(function()%7B
+  /* === Overlay-Button anlegen === */
+  if(!window._tgTranslator){ 
+    window._tgTranslator = true;
+    const btn = document.createElement('button');
+    btn.id = 'tg-translate-btn';
+    btn.innerText = 'Translate';
+    Object.assign(btn.style,{
+      position:'fixed', bottom:'20px', right:'20px',
+      padding:'10px 14px', 'font-size':'14px',
+      'background-color':'#28a745','color':'white',
+      border:'none','border-radius':'5px','z-index':9999
+    });
+    btn.onclick = function translateAll(){
+      const msgs = document.querySelectorAll('[data-testid=\"message-text\"], .message');
+      msgs.forEach(msg=>{
+        const txt = msg.innerText.trim();
+        if(txt && !msg.dataset.translated){
+          msg.dataset.translated = '1';
+          fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q='+encodeURIComponent(txt))
+            .then(r=>r.json())
+            .then(d=>{
+              msg.innerText = d[0][0][0];
+            });
+        }
+      });
+    };
+    document.body.appendChild(btn);
+    /* === Neue Nachrichten beobachten === */
+    const obs = new MutationObserver(()=>{ if(document.getElementById('tg-translate-btn')) document.getElementById('tg-translate-btn').click(); });
+    obs.observe(document.body, {childList:true, subtree:true});
+  } else {
+    /* Wenn schon geladen, einfach über Button neu übersetzen */
+    document.getElementById('tg-translate-btn').click();
+  }
+%7D)()">Telegram Web Übersetzer installieren</a>
+
+  <p class="note">
+    <strong>Installation auf Mobil:</strong><br>
+    1. Tippe auf den Link und wähle “Zu Lesezeichen hinzufügen”.<br>
+    2. Öffne deine Lesezeichen, bearbeite eben jenes neue Lesezeichen und ersetze die URL komplett mit dem obigen JavaScript (ab “javascript:(function…”).<br>
+    3. Speichere.<br>
+    4. Gehe zu <a href="https://web.telegram.org" target="_blank">Telegram Web</a> und öffne das Lesezeichen – unten rechts erscheint der grüne “Translate”-Button.<br>
+    5. Tippe ihn an, um alle Nachrichten ins Englische zu übersetzen. Neue Nachrichten werden automatisch mitübersetzt.
+  </p>
+</body>
+</html>
